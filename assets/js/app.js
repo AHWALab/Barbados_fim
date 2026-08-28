@@ -50,18 +50,29 @@ function statAt(c, t, v) {
 }
 function wetHere(c) { var s = statAt(c, thr, variant); return s && s.px > 0; }
 
+/* ---------- basemap ----------
+   CARTO raster basemaps require an API key since August 2026. This key was issued to the
+   University of Iowa for the domains ahwalab.github.io and localhost. It is a browser side
+   key: it is visible in this file by design, and CARTO restricts it to those domains.
+   To rotate it, replace the value here and in the other two viewer repositories.
+   CARTO and OpenStreetMap attribution must stay visible on the map, which it does below. */
+
+var CARTO_KEY = "cb1_2hul_1_d1beea1581cc2f8c94ba52d4";
+var CARTO_LIGHT = "https://basemaps.cartocdn.com/rastertiles/light_all/{z}/{x}/{y}{r}.png" +
+                  "?key=" + CARTO_KEY;
+var ESRI_IMAGERY = "https://server.arcgisonline.com/ArcGIS/rest/services/" +
+                   "World_Imagery/MapServer/tile/{z}/{y}/{x}";
+
 /* ---------- map ---------- */
 
 function buildMap() {
   map = L.map("map", { zoomControl: true, attributionControl: true });
   map.attributionControl.setPrefix("");
-  L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
-    maxZoom: 19, attribution: "OpenStreetMap contributors, CARTO"
-  }).addTo(map);
-  var sat = L.tileLayer(
-    "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+  var street = L.tileLayer(CARTO_LIGHT, {
+    maxZoom: 19, attribution: "OpenStreetMap contributors, CARTO" }).addTo(map);
+  var sat = L.tileLayer(ESRI_IMAGERY,
     { maxZoom: 19, attribution: "Esri World Imagery" });
-  L.control.layers({ "Street map": map._layers[Object.keys(map._layers)[0]], "Satellite": sat },
+  L.control.layers({ "Street map": street, "Satellite": sat },
     {}, { position: "topleft", collapsed: true }).addTo(map);
 
   overlay = L.imageOverlay("", LB, { opacity: 0.82, interactive: false,
