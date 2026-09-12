@@ -1,75 +1,60 @@
-# FIM Results Viewer: Saint Thomas, Barbados
+# FIM Results Viewer: Barbados
 
-Interactive viewer for probabilistic flood inundation maps produced with TITO and
-`tito_utils.fim_utils`. The dataset is the hindcast of 16 to 17 August 2026 for the
-Saint Thomas pilot (FIM site `Barbados_SaintThomas`, store `fim_store_BB11_SaintThomas_v1`):
-48 hourly forecast cycles, 50 ensemble members each.
+Interactive viewers for probabilistic flood inundation maps produced with TITO and
+`tito_utils.fim_utils`, for two demonstration cases.
 
 **Live site:** https://ahwalab.github.io/Barbados_fim/
+
+| Case | Folder | Products |
+|---|---|---|
+| Hurricane Tomas, 29 to 30 October 2010 | `tomas2010/` | one cycle, 30 Oct 00:00 UTC, all eleven parishes triggered, eleven parish products and an island mosaic |
+| Hindcast of 16 to 17 August 2026 | `aug2026/` | 48 hourly cycles for the Saint Thomas pilot, 4 with products |
 
 Companion products:
 [flood potential](https://ahwalab.github.io/Barbados_warnings/) and
 [impact based forecast](https://ahwalab.github.io/Barbados_IFB/).
 
-## What the viewer shows
+## What the viewers show
 
 Each map is the likelihood that flood depth exceeds a chosen threshold, computed by matching
 every ensemble member to a library of 200 pre-simulated flood scenarios for the parish and
-counting members pixel by pixel.
+counting members pixel by pixel. Barbados is a **pluvial only** site: members are matched by
+their rainfall total over the parish, taken from the real RainyDay storm totals. There is no
+fluvial library, so the fluvial and combined routines of the Guatemala product do not apply and
+their buttons are disabled. Depth thresholds are 0.10, 0.30, 0.70 and 1.00 m.
 
-Barbados is a **pluvial only** site: members are matched by their rainfall total over the area
-of concern, taken from the real RainyDay storm totals. There is no fluvial library here, so the
-fluvial and combined routines of the Guatemala product do not apply and their buttons are
-disabled. Depth thresholds are 0.10, 0.30, 0.70 and 1.00 m, set in
-`fim_config/Barbados_SaintThomas.yaml`.
+The Tomas page selects a product, the whole island or one parish, instead of a cycle. The island
+view is a mosaic of the eleven parish products, each clipped to its own parish so that no cell is
+drawn from a neighbour's library. The parish views show the full product window, buffer included.
 
 ## Repository layout
 
-    index.html               the viewer, English
-    assets/css/style.css     styles
-    assets/js/app.js         viewer logic, plain JavaScript on Leaflet
-    assets/js/xlinks.js      rewrites the sibling product links when served from GitHub Pages
-    assets/vendor/           Leaflet 1.9.4, vendored so the page works offline
-    assets/data/cycles.js    cycle list, per cycle statistics, window audit, area of concern
-    assets/layers/           one PNG per cycle, threshold and variant
+    index.html                   portal, one card per case
+    assets/css/style.css         styles, shared by the three Barbados viewers
+    assets/js/app.js             the August 2026 application, cycles
+    assets/js/app_parishes.js    the Tomas application, parishes
+    assets/vendor/               Leaflet 1.9.4, vendored
+    aug2026/data/cycles.js       cycle list, per cycle statistics, window audit, area of concern
+    aug2026/layers/<cycle>/P_<threshold>_<variant>.png
+    tomas2010/data/cycles.js     parish list, per parish statistics, island statistics, parish polygons
+    tomas2010/layers/20101030.000000/<Parish>_P_<threshold>_raw.png, and Island_P_<threshold>_raw.png
 
-Layer path convention: `assets/layers/<cycle>/P_<threshold>_<variant>.png`, threshold in
-`10cm`, `30cm`, `70cm`, `100cm`, variant `raw` or `ob`.
-
-## Three things a reader must know about this run
+## Things a reader must know
 
 1. **Overbank is a no-op here.** The overbank variant removes pixels already wet in the near
-   zero inflow reference scenario. Saint Thomas has no permanent channel in that scenario, so
-   the `raw` and `ob` PNGs are byte identical. The control is kept for consistency with the
-   sites that do have a fluvial library.
-2. **Cycle 20260817.150000 is not Saint Thomas.** Its rasters are 308 by 271 cells on the
-   Saint Michael window (AOC `Barbados_BB08_SaintMichael`, covered in full), while every other
-   cycle is 275 by 252 on Saint Thomas. Its trigger summary also reads quiet, with a maximum
-   unit streamflow of 0.9 against a trigger of 1.0. The viewer keeps the cycle, draws it on its
-   own bounds and badges it, and the impact product excludes it. The audit is in
-   `_build/stats/fim_window_audit.json`.
-3. **Wet pixels are sparse and scattered.** At the peak cycle 1,409 of 69,300 cells carry any
-   likelihood at 0.10 m. Use the Zoom to flooded area button rather than looking for a
-   contiguous flood polygon.
-
-## Local preview
-
-Open `index.html` directly, or serve the folder:
-
-    python -m http.server 8000
-
-The basemap tiles need internet; everything else is local.
-
-## Rebuilding for a new event
-
-1. Run the FIM pipeline for the event (`tito_utils.fim_utils.pipeline_pf`).
-2. Run `_build/scripts/03_fim_layers.py` to write the PNG layers and `cycles.js`.
-3. Run `_build/scripts/09_fim_window_audit.py` to add per cycle bounds and the window audit.
+   zero inflow reference scenario. Barbados has no permanent channel in that scenario, so the
+   `raw` and `ob` products are byte identical. The August 2026 page keeps the control for
+   consistency with the sites that do have a fluvial library; the Tomas page does not offer it.
+2. **Tomas passes the trigger everywhere.** Maximum unit streamflow over the parishes runs from
+   18 to 28.6 m3/s per km2 against a trigger of 1.0, in every parish with all 50 members. Member
+   rain totals of 120 to 380 mm match 27 to 35 distinct library storms per parish.
+3. **August 2026 cycle 20260817.150000 is not Saint Thomas.** Its rasters are on the Saint
+   Michael window. The viewer keeps the cycle, draws it on its own bounds and badges it.
 
 ## Basemap key
 
 CARTO raster basemaps have required an API key since August 2026. The key issued to the
-University of Iowa sits near the top of `assets/js/app.js` as `CARTO_KEY`, and the light basemap URL is
+University of Iowa sits near the top of both application files as `CARTO_KEY`, and the light basemap URL is
 built from it:
 
     https://basemaps.cartocdn.com/rastertiles/light_all/{z}/{x}/{y}{r}.png?key=CARTO_KEY
@@ -79,8 +64,6 @@ It is a browser side key, so it is visible in the source by design. CARTO restri
 replace the value in that one line, here and in the other two viewer repositories. CARTO and
 OpenStreetMap attribution must stay visible on the map, and it is printed in the bottom right
 corner of every map.
-
-The satellite layer is Esri World Imagery and needs no key.
 
 ## Local preview
 

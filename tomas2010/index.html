@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FIM Results Viewer. Barbados, Hurricane Tomas 2010</title>
+<meta name="description" content="Probabilistic flood inundation maps for all eleven parishes of Barbados, Hurricane Tomas, forecast cycle of 30 October 2010 00:00 UTC, 50 ensemble members, pluvial likelihood at four depth thresholds.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M8 1C8 1 3 7 3 10.2 3 13 5.2 15 8 15s5-2 5-4.8C13 7 8 1 8 1z' fill='%232b6ca3'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="../assets/vendor/leaflet.css">
+<link rel="stylesheet" href="../assets/css/style.css">
+<script>window.EVENT_DIR = "";</script>
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap head-row">
+    <div>
+      <h1>FIM Results Viewer</h1>
+      <p class="head-sub">Barbados, all eleven parishes. Hurricane Tomas, 29 to 30 October 2010</p>
+    </div>
+    <div class="head-meta">
+      <span>Forecast cycle 30 October 2010 00:00 UTC, 24 h horizon, 50 ensemble members</span>
+      <span>One flood map per parish, each matched against its own library of 200 scenarios</span>
+      <span><a href="../">Both events</a> &nbsp; <a href="../aug2026/">August 2026 case</a> &nbsp;
+        <a href="https://ahwalab.github.io/Barbados_warnings/tomas2010/">Flood potential</a> &nbsp;
+        <a href="https://ahwalab.github.io/Barbados_IFB/tomas2010/">Impact forecast</a></span>
+    </div>
+  </div>
+</header>
+
+<div class="context-band">
+  <div class="wrap">
+    Likelihood that flood depth exceeds a threshold, computed by matching every ensemble
+    member to a library of 200 pre-simulated flood scenarios for the parish and counting
+    members pixel by pixel. Barbados is a pluvial site: members are matched by their
+    rainfall total over the parish. All eleven parishes passed the trigger in this cycle,
+    so the island view is the mosaic of eleven parish products, each clipped to its own
+    parish.
+  </div>
+</div>
+
+<div class="wrap">
+  <section class="controls" aria-label="View controls">
+    <div class="ctl-group">
+      <span class="ctl-label">Routine</span>
+      <div class="seg" id="seg-routine">
+        <button class="on" disabled>Pluvial</button>
+        <button disabled title="No fluvial library for this site">Fluvial</button>
+        <button disabled title="Needs both routines">Combined</button>
+      </div>
+    </div>
+    <div class="ctl-group">
+      <span class="ctl-label">Depth threshold</span>
+      <div class="seg" id="seg-thr">
+        <button data-t="10cm">0.10 m</button>
+        <button data-t="30cm" class="on">0.30 m</button>
+        <button data-t="70cm">0.70 m</button>
+        <button data-t="100cm">1.00 m</button>
+      </div>
+    </div>
+    <div class="ctl-group">
+      <button class="toggle" id="zoomwet" title="Zoom the map to the pixels that carry any likelihood">Zoom to flooded area</button>
+      <button class="toggle" id="zoomisland" title="Zoom back out to the whole island">Whole island</button>
+    </div>
+  </section>
+
+  <section class="controls" aria-label="Parish picker" style="padding-top:0">
+    <div class="ctl-group">
+      <span class="ctl-label">Product</span>
+      <div class="seg" id="seg-parish"></div>
+    </div>
+  </section>
+
+  <main class="main">
+    <div class="map-col">
+      <div class="mapbox" id="mapbox">
+        <div id="map"></div>
+      </div>
+      <div class="map-caption">Grid 30 m, EPSG 4326. Each parish product is computed on a window
+        that covers the parish plus a 250 m buffer; the island view clips each product to its own
+        parish so that no cell is drawn from a neighbour's library. Click a parish on the map, in
+        the table or on the bar chart to open its product.</div>
+    </div>
+
+    <aside class="side">
+      <div class="cyc-head">
+        <h2 id="cyctitle"></h2>
+        <span class="badge" id="badge"></span>
+      </div>
+      <dl class="kv" id="kv"></dl>
+      <table class="st" id="sttable"></table>
+      <h3 class="sub">By parish, at the selected threshold</h3>
+      <div class="tablewrap"><table class="pt" id="parishtable"></table></div>
+      <div class="legend">
+        <span><i style="background:#8dc63f"></i>Very low, under 20%</span>
+        <span><i style="background:#fff200"></i>Low, 20 to 40%</span>
+        <span><i style="background:#f7941d"></i>Medium, 40 to 60%</span>
+        <span><i style="background:#ed1c24"></i>High, over 60%</span>
+        <span><i class="dash"></i>Parish boundary</span>
+      </div>
+      <p class="note">Likelihood at a pixel is the share of the 50 members whose matched
+        scenario reaches the depth threshold there.</p>
+      <div class="flag">
+        <strong>Read this before interpreting.</strong>
+        <br>1. The trigger is passed everywhere. Maximum unit streamflow over the parishes runs
+        from 18 to 28.6 m3/s per km2 against a trigger of 1.0, and in every parish all 50 members
+        pass it. The question in this case is not whether a map is issued but where the water
+        goes.
+        <br>2. Member rain totals of 120 to 380 mm sit near the middle of the scenario libraries,
+        so each member finds a distinct library storm. Between 27 and 35 different storms are
+        matched per parish, which is where the likelihood spread comes from.
+        <br>3. Overbank equals raw. Barbados has no permanent channel in the near zero inflow
+        reference scenario, so the overbank variant removes nothing and is not offered here.
+        <br>4. In the buffer strips between parishes the neighbouring products disagree, because
+        each is matched on its own parish rainfall. The island view resolves this by clipping;
+        the parish views show the full window, buffer included.
+      </div>
+    </aside>
+  </main>
+
+  <section class="timeline">
+    <div class="tl-head">
+      <h3>Trigger by parish</h3>
+      <span class="tl-key">maximum unit streamflow over the parish, any of the 50 members, against the trigger of 1.0</span>
+    </div>
+    <div class="stripwrap">
+      <svg id="strip" role="img" aria-label="Maximum unit streamflow per parish"></svg>
+      <div class="tooltip" id="tip" style="display:none"></div>
+    </div>
+    <div class="tl-cap">Sorted from the highest value. Click a bar to open that parish product.</div>
+  </section>
+</div>
+
+<footer class="site-foot">
+  <div class="wrap foot-row">
+    <div>
+      <strong>AHWA Laboratory, The University of Iowa</strong><br>
+      EWS-F project, funded by the WMO
+    </div>
+    <div class="foot-right">
+      Produced with TITO and tito_utils.fim_utils.<br>
+      Hindcast demonstration for training. Not an operational warning product.
+    </div>
+  </div>
+</footer>
+
+<script src="../assets/vendor/leaflet.js"></script>
+<script src="data/cycles.js"></script>
+<script src="../assets/js/app_parishes.js"></script>
+</body>
+</html>

@@ -1,10 +1,11 @@
-/* FIM Results Viewer, Barbados Saint Thomas.
+/* FIM Results Viewer, Barbados Saint Thomas, August 2026 case (48 hourly cycles).
    Leaflet plus plain JavaScript. Layers load on demand from
-   assets/layers/<cycle>/P_<threshold>_<variant>.png */
+   <event>/layers/<cycle>/P_<threshold>_<variant>.png */
 
 "use strict";
 
 var D = window.FIM_DATA;
+var EV = window.EVENT_DIR || "";
 var cycles = D.cycles;
 var THRESHOLDS = D.thresholds;          // 10cm, 30cm, 70cm, 100cm
 var B = D.bounds;
@@ -42,7 +43,7 @@ function cycleHour(c) {
   return (d - 16) * 24 + h;
 }
 function layerPath(c) {
-  return "assets/layers/" + c.cycle + "/P_" + thr + "_" + variant + ".png";
+  return EV + "layers/" + c.cycle + "/P_" + thr + "_" + variant + ".png";
 }
 function fmt(v) { return (v === null || v === undefined) ? "-" : v; }
 function statAt(c, t, v) {

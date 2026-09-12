@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FIM Results Viewer. Saint Thomas, Barbados, August 2026</title>
+<meta name="description" content="Probabilistic flood inundation maps for the Saint Thomas pilot, Barbados. Hindcast of 16 to 17 August 2026, 48 hourly forecast cycles, 50 ensemble members each, pluvial likelihood at four depth thresholds.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M8 1C8 1 3 7 3 10.2 3 13 5.2 15 8 15s5-2 5-4.8C13 7 8 1 8 1z' fill='%232b6ca3'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="../assets/vendor/leaflet.css">
+<link rel="stylesheet" href="../assets/css/style.css">
+<script>window.EVENT_DIR = "";</script>
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap head-row">
+    <div>
+      <h1>FIM Results Viewer</h1>
+      <p class="head-sub">Saint Thomas pilot, Barbados. Hindcast of 16 to 17 August 2026</p>
+    </div>
+    <div class="head-meta">
+      <span>48 hourly forecast cycles, 50 ensemble members each</span>
+      <span><a href="../">Both events</a> &nbsp; <a href="../tomas2010/">Tomas 2010 case</a> &nbsp;
+        <a href="https://ahwalab.github.io/Barbados_warnings/aug2026/">Flood potential</a> &nbsp;
+        <a href="https://ahwalab.github.io/Barbados_IFB/aug2026/">Impact forecast</a></span>
+    </div>
+  </div>
+</header>
+
+<div class="context-band">
+  <div class="wrap">
+    Likelihood that flood depth exceeds a threshold, computed by matching every ensemble
+    member to a library of 200 pre-simulated flood scenarios for the parish and counting
+    members pixel by pixel. Barbados is a pluvial site: members are matched by their
+    rainfall total over the area of concern. There is no fluvial routine here, so the
+    combined view of the Guatemala product does not apply.
+  </div>
+</div>
+
+<div class="wrap">
+  <section class="controls" aria-label="View controls">
+    <div class="ctl-group">
+      <span class="ctl-label">Routine</span>
+      <div class="seg" id="seg-routine">
+        <button class="on" disabled>Pluvial</button>
+        <button disabled title="No fluvial library for this site">Fluvial</button>
+        <button disabled title="Needs both routines">Combined</button>
+      </div>
+      <button class="toggle muted" id="obtoggle" title="Hide pixels already wet in the near zero inflow scenario. At this pluvial site the mask removes nothing.">Overbank only</button>
+    </div>
+    <div class="ctl-group">
+      <span class="ctl-label">Depth threshold</span>
+      <div class="seg" id="seg-thr">
+        <button data-t="10cm">0.10 m</button>
+        <button data-t="30cm" class="on">0.30 m</button>
+        <button data-t="70cm">0.70 m</button>
+        <button data-t="100cm">1.00 m</button>
+      </div>
+    </div>
+    <div class="ctl-group">
+      <span class="ctl-label">Cycle</span>
+      <button class="step" id="prev" title="Previous cycle">&lt;</button>
+      <select id="cycsel" class="picker" aria-label="Forecast cycle"></select>
+      <button class="step" id="next" title="Next cycle">&gt;</button>
+      <button class="toggle" id="play">Play</button>
+      <button class="toggle" id="jumpevent" title="Jump to the first Saint Thomas cycle with a flood map">Go to event</button>
+      <button class="toggle" id="zoomwet" title="Zoom the map to the pixels that carry any likelihood">Zoom to flooded area</button>
+    </div>
+  </section>
+
+  <section class="clock" id="clock" aria-label="Cycle picker by day and hour"></section>
+
+  <main class="main">
+    <div class="map-col">
+      <div class="mapbox" id="mapbox">
+        <div id="map"></div>
+        <div class="quiet-msg" id="quiet" style="display:none"></div>
+      </div>
+      <div class="map-caption">Grid 30 m, EPSG 4326, window 7.8 by 8.5 km over Saint Thomas.
+        Pan and zoom freely; the dashed outline is the area of concern used by the trigger.
+        Wet pixels are small and scattered at this scale, so use Zoom to flooded area.</div>
+      <div class="flag" id="windownote" style="display:none"></div>
+    </div>
+
+    <aside class="side">
+      <div class="cyc-head">
+        <h2 id="cyctitle"></h2>
+        <span class="badge" id="badge"></span>
+      </div>
+      <dl class="kv" id="kv"></dl>
+      <table class="st" id="sttable"></table>
+      <div class="legend">
+        <span><i style="background:#8dc63f"></i>Very low, under 20%</span>
+        <span><i style="background:#fff200"></i>Low, 20 to 40%</span>
+        <span><i style="background:#f7941d"></i>Medium, 40 to 60%</span>
+        <span><i style="background:#ed1c24"></i>High, over 60%</span>
+        <span><i class="dash"></i>Area of concern</span>
+      </div>
+      <p class="note">Likelihood at a pixel is the share of the 50 members whose matched
+        scenario reaches the depth threshold there. Use the arrow keys to step through cycles.</p>
+      <div class="flag" id="flags">
+        <strong>Read this before interpreting.</strong>
+        <br>1. Overbank only removes pixels that are already wet in the near zero inflow
+        reference scenario. Saint Thomas has no permanent channel in that scenario, so the
+        overbank and raw maps are identical here. The control is kept for consistency with
+        the sites that do have a fluvial library.
+        <br>2. Cycle 17 August 15:00 does not belong to this site. Its rasters are 308 by 271
+        cells on the Saint Michael window, which they cover in full, while every other cycle is
+        275 by 252 on Saint Thomas. Its trigger summary also reports 0.9, below the trigger of
+        1.0, and reads quiet. The cycle is kept in the viewer, drawn on its own window and
+        badged, because finding it is part of the exercise. It is excluded from the Saint
+        Thomas sequence and from the impact product.
+      </div>
+    </aside>
+  </main>
+
+  <section class="timeline">
+    <div class="tl-head">
+      <h3>Event timeline</h3>
+      <span class="tl-key">
+        <i class="k-line"></i>max unit streamflow over the area of concern
+        <i class="k-trig"></i>trigger 1.0
+        <i class="k-cur"></i>selected cycle
+      </span>
+    </div>
+    <div class="stripwrap">
+      <svg id="strip" role="img" aria-label="Maximum unit streamflow per forecast cycle"></svg>
+      <div class="tooltip" id="tip" style="display:none"></div>
+    </div>
+    <div class="tl-cap">Times are UTC. Shaded columns are the cycles that carry a flood map.
+      Click anywhere on the strip to jump to that cycle.</div>
+  </section>
+</div>
+
+<footer class="site-foot">
+  <div class="wrap foot-row">
+    <div>
+      <strong>AHWA Laboratory, The University of Iowa</strong><br>
+      EWS-F project, funded by the WMO
+    </div>
+    <div class="foot-right">
+      Produced with TITO and tito_utils.fim_utils.<br>
+      Hindcast demonstration for training. Not an operational warning product.
+    </div>
+  </div>
+</footer>
+
+<script src="../assets/vendor/leaflet.js"></script>
+<script src="data/cycles.js"></script>
+<script src="../assets/js/app.js"></script>
+</body>
+</html>
