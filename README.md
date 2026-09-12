@@ -51,6 +51,19 @@ drawn from a neighbour's library. The parish views show the full product window,
 3. **August 2026 cycle 20260817.150000 is not Saint Thomas.** Its rasters are on the Saint
    Michael window. The viewer keeps the cycle, draws it on its own bounds and badges it.
 
+## Reported impacts, Tomas
+
+The Tomas page carries a "Reported impacts" layer: six mapped records and an island summary
+compiled from the SIDS Flash Flood Compendium (FFC, DesInventar and Groundsource sheets), the
+NHC tropical cyclone report, CDEMA situation reports and press reports, with the sources linked
+in every popup. Categories: flooding (Drill Hall Beach, Saint Philip parish, the Trinity Animal
+Clinic at Woodbourne), wind damage (Saint Peter, Wildey) and the Grantley Adams observation
+(294 mm, gust 91 knots). Tomas hit Barbados mostly through wind, and the compendium itself notes
+that surge, flash flooding and wind damage are not separated in the reports, so the flood record
+is thin; parish and district level records sit at the centroid with a dashed circle. The table is
+`tomas2010/data/impacts_tomas2010.csv` (also GeoJSON), the layer code `assets/js/impacts.js`, the
+payload `tomas2010/data/impacts.js`. The August 2026 hindcast has no documented impacts.
+
 ## Basemap key
 
 CARTO raster basemaps have required an API key since August 2026. The key issued to the
